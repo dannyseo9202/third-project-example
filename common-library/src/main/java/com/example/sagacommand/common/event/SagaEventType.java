@@ -1,0 +1,12 @@
+package com.example.sagacommand.common.event;
+
+public enum SagaEventType {
+    ORDER_CREATED,
+    ORDER_CANCELLED,
+    PAYMENT_COMPLETED,
+    PAYMENT_FAILED,
+    PAYMENT_CANCELLED,
+    INVENTORY_RESERVED,
+    INVENTORY_RESERVATION_FAILED,
+    INVENTORY_RELEASED,
+}

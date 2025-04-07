@@ -1,0 +1,5 @@
+rootProject.name = 'saga-command'
+
+include 'order-service'
+include 'common-library'
+

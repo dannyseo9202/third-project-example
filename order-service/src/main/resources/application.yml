@@ -1,0 +1,87 @@
+spring:
+  application:
+    name: order-service
+
+  # 데이터베이스 설정
+  datasource:
+    url: jdbc:mysql://localhost:3306/orderdb
+    username: root
+    password: password
+  #    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # JPA 설정
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+    show-sql: true
+
+  # Kafka 설정
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.type.mapping: >
+          order-created:com.example.sagacommand.common.event.OrderCreatedEvent,
+          order-cancelled:com.example.sagacommand.common.event.OrderCancelledEvent,
+          payment-completed:com.example.sagacommand.common.event.PaymentCompletedEvent,
+          payment-failed:com.example.sagacommand.common.event.PaymentFailedEvent,
+          inventory-reservation-failed:com.example.sagacommand.common.event.InventoryReservationFailedEvent
+    consumer:
+      group-id: ${spring.application.name}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.example
+        spring.json.type.mapping: >
+          order-created:com.example.sagacommand.common.event.OrderCreatedEvent,
+          order-cancelled:com.example.sagacommand.common.event.OrderCancelledEvent,
+          payment-completed:com.example.sagacommand.common.event.PaymentCompletedEvent,
+          payment-failed:com.example.sagacommand.common.event.PaymentFailedEvent,
+          inventory-reservation-failed:com.example.sagacommand.common.event.InventoryReservationFailedEvent
+    listener:
+      ack-mode: MANUAL_IMMEDIATE
+
+# 로깅 설정
+logging:
+  level:
+    root: INFO
+    com.example: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.springframework.kafka: INFO
+  file:
+    name: logs/order-service.log
+
+# 서버 설정
+server:
+  port: 8080
+
+# 애플리케이션 커스텀 속성
+app:
+  kafka:
+    topics:
+      order-events: order-events
+      payment-events: payment-events
+      inventory-events: inventory-events
+      shipping-events: shipping-events
+  threadpool:
+    core-size: 10
+    max-size: 50
+    queue-capacity: 100
+
+---
+# Docker 환경을 위한 프로필
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: jdbc:mysql://mysql:3306/orderdb
+  kafka:
+    bootstrap-servers: kafka:9092

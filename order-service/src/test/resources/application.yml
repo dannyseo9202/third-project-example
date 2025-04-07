@@ -1,0 +1,77 @@
+spring:
+  # 테스트 환경 설정
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+
+  # H2 콘솔 활성화
+  h2:
+    console:
+      enabled: true
+
+  # JPA 설정
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+    show-sql: true
+
+  # 테스트 용 Kafka 설정 (EmbeddedKafka 사용)
+  kafka:
+    bootstrap-servers: ${spring.embedded.kafka.brokers}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.trusted.packages: com.example
+        spring.json.type.mapping: >
+          order-created:com.example.sagacommand.common.event.OrderCreatedEvent,
+          order-cancelled:com.example.sagacommand.common.event.OrderCancelledEvent,
+          payment-completed:com.example.sagacommand.common.event.PaymentCompletedEvent,
+          payment-failed:com.example.sagacommand.common.event.PaymentFailedEvent,
+          inventory-reservation-failed:com.example.sagacommand.common.event.InventoryReservationFailedEvent
+    consumer:
+      group-id: test-consumer-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.example
+        spring.json.type.mapping: >
+          order-created:com.example.sagacommand.common.event.OrderCreatedEvent,
+          order-cancelled:com.example.sagacommand.common.event.OrderCancelledEvent,
+          payment-completed:com.example.sagacommand.common.event.PaymentCompletedEvent,
+          payment-failed:com.example.sagacommand.common.event.PaymentFailedEvent,
+          inventory-reservation-failed:com.example.sagacommand.common.event.InventoryReservationFailedEvent
+    listener:
+      ack-mode: RECORD
+
+# 로깅 설정 (테스트용)
+logging:
+  level:
+    root: INFO
+    com.example: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.springframework.kafka: DEBUG
+
+# 서버 설정
+server:
+  port: 0  # 랜덤 포트 사용
+
+# 테스트 환경 애플리케이션 커스텀 속성
+app:
+  kafka:
+    topics:
+      order-events: order-events
+      payment-events: payment-events
+      inventory-events: inventory-events
+      shipping-events: shipping-events
+  threadpool:
+    core-size: 5
+    max-size: 10
+    queue-capacity: 20
